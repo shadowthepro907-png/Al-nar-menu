@@ -1,0 +1,400 @@
+import React, { useState } from 'react';
+import { ShoppingCart, Trash2, MessageCircle, Truck, Home } from 'lucide-react';
+
+export default function AlNaarOrdering() {
+  const [cart, setCart] = useState([]);
+  const [activeCategory, setActiveCategory] = useState('salads');
+  const [orderType, setOrderType] = useState(null); // 'delivery' or 'takeaway'
+  const [comments, setComments] = useState('');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const menu = {
+    salads: {
+      name: 'Salad & Sides',
+      icon: '🥗',
+      items: [
+        { id: 'salad1', name: 'Fattouch', price: 5.50 },
+        { id: 'salad2', name: 'Hommos', price: 5.00 },
+        { id: 'salad3', name: 'Box Fries', price: 2.00 },
+        { id: 'salad4', name: 'Fries', price: 4.00 }
+      ]
+    },
+    sandwiches: {
+      name: 'Sandwiches',
+      icon: '🥙',
+      items: [
+        { id: 'sand1', name: 'Fries', price: 3.00 },
+        { id: 'sand2', name: 'Tawook', price: 6.00 },
+        { id: 'sand3', name: 'Lahme', price: 6.50 },
+        { id: 'sand4', name: 'Ghanam', price: 9.00 },
+        { id: 'sand5', name: 'Mkanek', price: 6.00 },
+        { id: 'sand6', name: 'Kafta', price: 6.00 },
+        { id: 'sand7', name: 'Kabab', price: 6.00 },
+        { id: 'sand8', name: 'Kabab ع النار', price: 7.00 },
+        { id: 'sand9', name: 'Chicken Grilled', price: 6.00 },
+        { id: 'sand10', name: 'Kafta 3al Ab3a', price: 7.00 },
+        { id: 'sand11', name: 'Kabab 3al Ab3a', price: 7.00 }
+      ]
+    },
+    platters: {
+      name: 'Platters',
+      icon: '🍽️',
+      items: [
+        { id: 'plat1', name: 'Plat Tawook', price: 9.00 },
+        { id: 'plat2', name: 'Plat Lahme', price: 10.00 },
+        { id: 'plat3', name: 'Plat Ghanam', price: 12.00 },
+        { id: 'plat4', name: 'Plat Kafta', price: 9.00 },
+        { id: 'plat5', name: 'Plat Kabab', price: 9.00 },
+        { id: 'plat6', name: 'Plat Kabab ع النار', price: 10.00 },
+        { id: 'plat7', name: 'Plat Wings (14pcs)', price: 8.00 }
+      ]
+    },
+    masheweh: {
+      name: 'Masheweh',
+      icon: '🔥',
+      items: [
+        { id: 'mash1', name: 'Masheweh Mshakal', size1: { label: '1Kg', price: 29.00 }, size2: { label: '0.5Kg', price: 15.00 } },
+        { id: 'mash2', name: 'Tawook', size1: { label: '1Kg', price: 26.00 }, size2: { label: '0.5Kg', price: 14.00 } },
+        { id: 'mash3', name: 'Lahme', size1: { label: '1Kg', price: 32.00 }, size2: { label: '0.5Kg', price: 17.00 } },
+        { id: 'mash4', name: 'Ghanam', size1: { label: '1Kg', price: 38.00 }, size2: { label: '0.5Kg', price: 20.00 } },
+        { id: 'mash5', name: 'Kafta', size1: { label: '1Kg', price: 26.00 }, size2: { label: '0.5Kg', price: 14.00 } },
+        { id: 'mash6', name: 'Kabab', size1: { label: '1Kg', price: 26.00 }, size2: { label: '0.5Kg', price: 14.00 } }
+      ]
+    },
+    chicken: {
+      name: 'Chicken',
+      icon: '🍗',
+      items: [
+        { id: 'chick1', name: 'Farouj (Whole Chicken)', price: 16.00 },
+        { id: 'chick2', name: 'Nos Farouj (Half Chicken)', price: 9.00 }
+      ]
+    },
+    sauces: {
+      name: 'Extra Sauces',
+      icon: '🥫',
+      items: [
+        { id: 'sauce1', name: 'Toum', price: 1.00 },
+        { id: 'sauce2', name: 'Honey Mustard', price: 1.50 },
+        { id: 'sauce3', name: 'Sauce ع النار', price: 1.50 }
+      ]
+    },
+    drinks: {
+      name: 'Drinks',
+      icon: '🥤',
+      items: [
+        { id: 'drink1', name: 'Soft Drinks', price: 1.10 },
+        { id: 'drink2', name: 'Sparkling Water', price: 1.10 },
+        { id: 'drink3', name: 'Sparkling Water + Lemon', price: 1.50 },
+        { id: 'drink4', name: 'Water', price: 0.50 },
+        { id: 'drink5', name: 'Beer', price: 2.00 }
+      ]
+    }
+  };
+
+  const categories = Object.entries(menu).map(([key, value]) => ({
+    id: key,
+    name: value.name,
+    icon: value.icon
+  }));
+
+  const currentMenu = menu[activeCategory];
+
+  const addToCart = (item, size = null) => {
+    const cartItem = {
+      ...item,
+      cartId: `${item.id}-${size ? size.label : 'regular'}-${Date.now()}`,
+      size: size,
+      quantity: 1
+    };
+    setCart([...cart, cartItem]);
+  };
+
+  const updateQuantity = (cartId, newQuantity) => {
+    if (newQuantity <= 0) {
+      removeFromCart(cartId);
+    } else {
+      setCart(cart.map(item => 
+        item.cartId === cartId ? { ...item, quantity: newQuantity } : item
+      ));
+    }
+  };
+
+  const removeFromCart = (cartId) => {
+    setCart(cart.filter(item => item.cartId !== cartId));
+  };
+
+  const calculateTotal = () => {
+    return cart.reduce((total, item) => {
+      const price = item.size ? item.size.price : item.price;
+      return total + (price * item.quantity);
+    }, 0);
+  };
+
+  const generateWhatsAppMessage = () => {
+    let message = `🍽️ *عالنار - Al Naar Order* 🍽️\n\n`;
+    message += `📱 *Order Type:* ${orderType === 'delivery' ? '🚗 Delivery' : '🏪 Takeaway'}\n\n`;
+    message += `*📦 Items:*\n`;
+    
+    cart.forEach(item => {
+      const price = item.size ? item.size.price : item.price;
+      const sizeLabel = item.size ? ` (${item.size.label})` : '';
+      message += `• ${item.name}${sizeLabel} × ${item.quantity} = $${(price * item.quantity).toFixed(2)}\n`;
+    });
+
+    message += `\n💰 *Total: $${calculateTotal().toFixed(2)}*\n`;
+    
+    if (comments) {
+      message += `\n📝 *Special Requests:*\n${comments}\n`;
+    }
+
+    message += `\n✅ Thank you for choosing Al Naar!`;
+    
+    return encodeURIComponent(message);
+  };
+
+  const handleWhatsAppOrder = () => {
+    if (cart.length === 0) {
+      alert('Please add items to your order');
+      return;
+    }
+    if (!orderType) {
+      alert('Please select Delivery or Takeaway');
+      return;
+    }
+
+    const whatsappNumber = '961813774700'; // Lebanon country code
+    const message = generateWhatsAppMessage();
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const MenuItem = ({ item }) => {
+    if (item.size1) {
+      // Masheweh item with sizes
+      return (
+        <div className="bg-gray-700 p-4 rounded-lg hover:bg-gray-600 transition-all">
+          <h4 className="font-semibold text-white mb-3">{item.name}</h4>
+          <div className="space-y-2">
+            <button
+              onClick={() => addToCart(item, item.size1)}
+              className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded text-sm font-semibold transition-all"
+            >
+              {item.size1.label} - ${item.size1.price.toFixed(2)}
+            </button>
+            <button
+              onClick={() => addToCart(item, item.size2)}
+              className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded text-sm font-semibold transition-all"
+            >
+              {item.size2.label} - ${item.size2.price.toFixed(2)}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-gray-700 p-4 rounded-lg hover:bg-gray-600 transition-all flex justify-between items-center">
+        <div className="flex-1">
+          <h4 className="font-semibold text-white">{item.name}</h4>
+          <p className="text-red-400 font-bold">${item.price.toFixed(2)}</p>
+        </div>
+        <button
+          onClick={() => addToCart(item)}
+          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-semibold transition-all ml-4"
+        >
+          +
+        </button>
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-red-900 via-gray-900 to-black text-white">
+      {/* Header */}
+      <header className="bg-black bg-opacity-80 backdrop-blur sticky top-0 z-40 border-b-2 border-red-600">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-red-500">عالنار</h1>
+            <p className="text-xs text-gray-400">Al Naar - Premium Grilled Meats</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:block text-right text-sm">
+              <p className="font-semibold">📍 Kfarshima, Belouh, Yaghy Bld</p>
+              <p className="text-red-400">📱 81 73 74 70</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid lg:grid-cols-4 gap-6">
+          {/* Left - Menu */}
+          <div className="lg:col-span-2.5">
+            {/* Order Type Selection */}
+            <div className="mb-6 p-4 bg-gray-800 rounded-lg border border-red-600">
+              <p className="text-sm font-semibold mb-3 text-gray-300">Select Order Type:</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setOrderType('takeaway')}
+                  className={`flex-1 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all ${
+                    orderType === 'takeaway'
+                      ? 'bg-red-600 shadow-lg shadow-red-500'
+                      : 'bg-gray-700 hover:bg-gray-600'
+                  }`}
+                >
+                  <Home size={18} />
+                  Takeaway
+                </button>
+                <button
+                  onClick={() => setOrderType('delivery')}
+                  className={`flex-1 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all ${
+                    orderType === 'delivery'
+                      ? 'bg-red-600 shadow-lg shadow-red-500'
+                      : 'bg-gray-700 hover:bg-gray-600'
+                  }`}
+                >
+                  <Truck size={18} />
+                  Delivery
+                </button>
+              </div>
+            </div>
+
+            {/* Category Selection */}
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-6">
+              {categories.map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`p-3 rounded-lg font-semibold text-xs sm:text-sm transition-all ${
+                    activeCategory === cat.id
+                      ? 'bg-red-600 shadow-lg shadow-red-500'
+                      : 'bg-gray-800 hover:bg-gray-700'
+                  }`}
+                >
+                  <span className="text-xl block mb-1">{cat.icon}</span>
+                  {cat.name.split(' ')[0]}
+                </button>
+              ))}
+            </div>
+
+            {/* Menu Items */}
+            <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 border border-gray-700">
+              <div className="flex items-center gap-2 mb-6 pb-4 border-b-2 border-red-600">
+                <span className="text-3xl">{currentMenu.icon}</span>
+                <h3 className="text-2xl font-bold">{currentMenu.name}</h3>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                {currentMenu.items.map(item => (
+                  <MenuItem key={item.id} item={item} />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right - Order Summary */}
+          <div className="lg:col-span-1.5 h-fit sticky top-24">
+            <div className="bg-gray-800 border-2 border-red-600 rounded-xl p-6">
+              <div className="flex items-center gap-2 mb-6 pb-4 border-b border-red-600">
+                <ShoppingCart className="text-red-500" />
+                <h3 className="text-xl font-bold">Your Order</h3>
+              </div>
+
+              {/* Cart Items */}
+              <div className="space-y-3 max-h-96 overflow-y-auto mb-6">
+                {cart.length === 0 ? (
+                  <p className="text-gray-400 text-center py-8">Your cart is empty</p>
+                ) : (
+                  cart.map(item => {
+                    const price = item.size ? item.size.price : item.price;
+                    const sizeLabel = item.size ? ` (${item.size.label})` : '';
+                    return (
+                      <div key={item.cartId} className="bg-gray-700 p-3 rounded-lg">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <p className="font-semibold text-sm">{item.name}{sizeLabel}</p>
+                            <p className="text-red-400 font-bold">${price.toFixed(2)}</p>
+                          </div>
+                          <button
+                            onClick={() => removeFromCart(item.cartId)}
+                            className="text-red-500 hover:text-red-700 ml-2"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => updateQuantity(item.cartId, item.quantity - 1)}
+                            className="bg-gray-600 hover:bg-gray-500 px-2 py-1 rounded text-sm"
+                          >
+                            −
+                          </button>
+                          <input
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) => updateQuantity(item.cartId, parseInt(e.target.value) || 1)}
+                            className="w-12 bg-gray-600 text-white text-center rounded text-sm"
+                            min="1"
+                          />
+                          <button
+                            onClick={() => updateQuantity(item.cartId, item.quantity + 1)}
+                            className="bg-gray-600 hover:bg-gray-500 px-2 py-1 rounded text-sm"
+                          >
+                            +
+                          </button>
+                          <span className="ml-auto font-semibold">${(price * item.quantity).toFixed(2)}</span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {cart.length > 0 && (
+                <>
+                  {/* Comments Section */}
+                  <div className="mb-6 pb-6 border-b border-gray-700">
+                    <label className="block text-sm font-semibold mb-2">Special Requests:</label>
+                    <textarea
+                      value={comments}
+                      onChange={(e) => setComments(e.target.value)}
+                      placeholder="e.g., Extra spicy, no onions, etc."
+                      className="w-full bg-gray-700 text-white p-3 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-600"
+                      rows="3"
+                    />
+                  </div>
+
+                  {/* Total */}
+                  <div className="mb-6 pb-6 border-b border-gray-700">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-gray-300">Subtotal:</span>
+                      <span className="font-bold">${calculateTotal().toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-lg font-bold text-red-400">
+                      <span>Total:</span>
+                      <span className="text-2xl">${calculateTotal().toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  {/* Order Button */}
+                  <button
+                    onClick={handleWhatsAppOrder}
+                    className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all shadow-lg"
+                  >
+                    <MessageCircle size={20} />
+                    Send Order to WhatsApp
+                  </button>
+                </>
+              )}
+
+              {/* Contact Info */}
+              <div className="mt-6 pt-6 border-t border-gray-700 text-center text-sm text-gray-400">
+                <p className="mb-2">📍 Kfarshima, Belouh, Yaghy Bld</p>
+                <p>📱 81 73 74 70</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
